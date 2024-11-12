@@ -1,18 +1,8 @@
-from cmath import e
-from tkinter.filedialog import askopenfilename, asksaveasfilename
-import os
+from os import getcwd
+from os.path import join
+from csv import reader
+from dq8lib import *
 
-def bytes_to_write_little_endian(number, padding):
-	temp = []
-	
-	while True:
-		if(number == 0):
-			for x in range(padding - len(temp)):
-				temp.append(0)
-			return(temp)
-		
-		temp.append(number & 0xFF)
-		number = number >> 8
 
 def stat_alter(source_data, target_stat, alter_mode, alter_number, regular_bool, boss_bool, memory_bool):
     
@@ -81,9 +71,15 @@ def stat_alter(source_data, target_stat, alter_mode, alter_number, regular_bool,
 		case "Rare Drop":
 			cursor_offset += 0x16
 			byte_count = 0x2
-		case "3 unk bytes":
+		case "Common Drop Rate":
 			cursor_offset += 0x18
 			byte_count = 0x3
+		case "Rare Drop Rate":
+			cursor_offset += 0x19
+			byte_count = 0x3
+		case "1 unk bytes":
+			cursor_offset += 0x1A
+			byte_count = 0x1
 		case "Resistances":
 			cursor_offset += 0x1B
 			byte_count = 0x10
@@ -170,30 +166,7 @@ def stat_alter(source_data, target_stat, alter_mode, alter_number, regular_bool,
 	return(source_data)
 
 
-def get_file():
-	source_file = []
-	source_file_path = askopenfilename(title = 'Select monster.tbl file')
-
-	with open(source_file_path, "r+b") as f:
-		f.seek(0, os.SEEK_END)
-		file_end = f.tell()
-		f.seek(0, 0)
-		block = f.read(file_end)
-		
-	for ch in block:
-		source_file.append(ch)
-	return(source_file, source_file_path)
-
-
-def write_file(source_file, source_file_path):
-    
-    
-	with open(source_file_path, "w+b") as f:
-		f.write(bytes(source_file))
-	
-
-
-def receive_input(source_data):
+def receive_input_mass_edit(source_data):
 	
 	
 	outstring = ''
@@ -304,24 +277,48 @@ def receive_input(source_data):
 			else:
 				return(source_data)
 			
+def receive_input_saved_drops(source_data):
+	
+	with open(join(getcwd(),'drop_rate.csv'), 'r', newline='', encoding='utf-8-sig') as csvfile:
+		drop_rate_edit_table = reader(csvfile, dialect='excel', delimiter=',')
+		
+		for row in drop_rate_edit_table:
+			print(row)
+			cursor = 0xF0 + (int(row[0], base = 16) - 1)*0xE0
+			print(cursor, source_data[cursor + 0x20], source_data[cursor + 0x21])
+			source_data[cursor + 0x20] = int(row[1])
+			source_data[cursor + 0x21] = int(row[2])
+			print(cursor, source_data[cursor + 0x20], source_data[cursor + 0x21])
+	return(source_data)
 			
 
 def main():
-	
+
 
 	while True:
 		try:
-			source_data, source_file_path = get_file()
+			source_data, source_file_path = get_file('monster.tbl')
 			break
 		except Exception as e:
 			print(e)
-	
+	edit_mode = ''	
+	while True:
+		try:
+			edit_mode = input('Select mode: M = Mass Edit, S = Apply saved drops\n')
+			if(edit_mode.lower() in {'m', 's'}):
+				edit_mode = edit_mode.lower()
+				print(edit_mode)
+				break
+		except Exception as e:
+			print(e)
 
 	
 	print('Saving .bak as backup')
 	write_file(source_data, source_file_path + '.bak')
-	
-	source_data = receive_input(source_data)
+	if(edit_mode == 'm'):
+		source_data = receive_input_mass_edit(source_data)
+	elif(edit_mode == 's'):
+		source_data = receive_input_saved_drops(source_data)
 	
 	print('Saving edited file')
 	write_file(source_data, source_file_path)

@@ -4,13 +4,15 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>b2c6d955-57aa-457b-b259-a76bddb5fdcf</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>DQ_VIII_Monster_Stat_Mass_Editor.py</StartupFile>
+    <StartupFile>DQ VIII Set Alchemy Table Size.py</StartupFile>
     <SearchPath>
     </SearchPath>
-    <WorkingDirectory>.</WorkingDirectory>
+    <WorkingDirectory>
+    </WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>DQ VIII Monster Stat Mass Editor</Name>
     <RootNamespace>DQ VIII Monster Stat Mass Editor</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
